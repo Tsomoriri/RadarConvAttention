@@ -65,6 +65,10 @@ Our research demonstrates that incorporating physics-informed regularization and
 
 ## Getting Started
 
+```
+pip install -r requirements.txt
+
+```
 - Run the train and eval scripts to train the models and evaluate their performance.
 - Add dataset and model paths to the config dictionary of train and eval script.
 
