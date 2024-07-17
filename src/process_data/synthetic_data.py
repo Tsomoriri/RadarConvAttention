@@ -191,6 +191,77 @@ class synData:
                 )
         return movie
 
+    def generate_rectangles_with_individual_velocities(n, nx, ny, nt):
+        # Initialize the grid for rectangles
+        grid = np.zeros((ny, nx, nt))
+
+        # Create coordinate meshgrid
+        x = np.linspace(0, 1, nx)
+        y = np.linspace(0, 1, ny)
+        x_mesh, y_mesh = np.meshgrid(x, y)
+
+        # Fixed size for each rectangle
+        width = 0.038
+        height = 0.038
+
+        # List to store rectangle information
+        rectangles = []
+
+        for _ in range(n):
+            # Randomly position the rectangle
+            x_min = np.random.uniform(0, 1 - width)
+            y_min = np.random.uniform(0, 1 - height)
+            x_max = x_min + width
+            y_max = y_min + height
+
+            # Generate individual velocity for this rectangle
+            vx = np.random.uniform(-0.5, 0.5)
+            vy = np.random.uniform(-0.5, 0.5)
+
+            rectangles.append({
+                'x_min': x_min, 'y_min': y_min,
+                'x_max': x_max, 'y_max': y_max,
+                'vx': vx, 'vy': vy
+            })
+
+        # Generate movie frames
+        t = np.linspace(0, 1, nt)
+        for frame in range(nt):
+            frame_grid = np.zeros((ny, nx))
+            for rect in rectangles:
+                # Update rectangle position based on its velocity
+                x_min = rect['x_min'] + rect['vx'] * t[frame]
+                y_min = rect['y_min'] + rect['vy'] * t[frame]
+                x_max = rect['x_max'] + rect['vx'] * t[frame]
+                y_max = rect['y_max'] + rect['vy'] * t[frame]
+
+                # Wrap around if rectangle goes out of bounds
+                x_min = x_min % 1
+                y_min = y_min % 1
+                x_max = x_max % 1
+                y_max = y_max % 1
+
+                # Create masks for the rectangle
+                x_mask = (x_mesh >= x_min) & (x_mesh <= x_max)
+                y_mask = (y_mesh >= y_min) & (y_mesh <= y_max)
+
+                # Create gradients within the rectangle
+                x_gradient = (x_mesh - x_min) / (x_max - x_min)
+                y_gradient = (y_mesh - y_min) / (y_max - y_min)
+
+                # Combine gradients and apply exponential
+                gradient = np.exp(x_gradient * y_gradient)
+
+                # Apply the gradient to the rectangle
+                frame_grid[y_mask & x_mask] += gradient[y_mask & x_mask]
+
+            # Normalize the frame grid to be between 0 and 1
+            if np.max(frame_grid) > 0:
+                frame_grid = frame_grid / np.max(frame_grid)
+
+            grid[:,:,frame] = frame_grid
+
+        return grid, rectangles
 
     def save_movie(self, movie, filename):
         np.save(filename, movie)
@@ -205,5 +276,3 @@ class synData:
             plt.colorbar()
             plt.colorbar()
             plt.show()
-
-
