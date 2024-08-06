@@ -18,9 +18,10 @@ from src.models.ConvLSTM import ConvLSTM
 from src.models.ConvLSTM_Physics import ConvLSTM_iPINN as ConvLSTM_Physics
 from src.models.AttentionConvLSTM import ConvLSTM as ConvLSTM_Attention
 from src.models.AttentionConvLSTM_Physics import ConvLSTM as ConvLSTM_Attention_Physics
+from utils.shap_manager import SHAPExplainer
 
 class TrainEvalManager:
-    def __init__(self, models_config, datasets_config, device='cuda', batch_size=32, num_epochs=50, learning_rate=0.001):
+    def __init__(self, models_config, datasets_config, device='cuda', batch_size=32, num_epochs=2, learning_rate=0.001):
         self.models_config = models_config
         self.datasets_config = datasets_config
         self.device = torch.device(device if torch.cuda.is_available() else 'cpu')
@@ -166,18 +167,40 @@ class TrainEvalManager:
                 if (epoch + 1) % 5 == 0:
                     print(f"Epoch {epoch + 1}/{self.num_epochs}, Loss: {train_loss:.4f}")
 
-            # Evaluate on each test dataset
-            for test_dataset_path in test_dataset_paths:
-                _,test_loader = self.load_data(test_dataset_path)
+             # Evaluate on each test dataset
+            if isinstance(test_dataset_paths,list):
+                for test_dataset_path in test_dataset_paths:
+                    _,test_loader = self.load_data(test_dataset_path)
+                    test_loss, mae, ssim_value, outputs, targets = self.evaluate_model(model, test_loader)
+                    print(f"Test on {os.path.basename(test_dataset_path)}:")
+                    print(f"Test Loss: {test_loss:.4f}, MAE: {mae:.4f}, SSIM: {ssim_value:.4f}")
+
+                    results.append({
+                        'model': model_name,
+                        'scheme': scheme,
+                        'train_dataset': os.path.basename(train_dataset_path),
+                        'test_dataset': os.path.basename(test_dataset_path),
+                        'test_loss': test_loss,
+                        'mae': mae,
+                        'ssim': ssim_value
+                    })
+
+                    # Create and save comparison GIF
+                    gif_filename = os.path.join(self.results_dir,
+                                                f'{experiment_name}_{model_name}_{scheme}_{os.path.basename(test_dataset_path)}_comparison.gif')
+                    self.create_comparison_gif(outputs, targets, gif_filename)
+                    print(f"Comparison GIF saved as {gif_filename}")
+            else:
+                _,test_loader = self.load_data(test_dataset_paths)
                 test_loss, mae, ssim_value, outputs, targets = self.evaluate_model(model, test_loader)
-                print(f"Test on {os.path.basename(test_dataset_path)}:")
+                print(f"Test on {os.path.basename(test_dataset_paths)}:")
                 print(f"Test Loss: {test_loss:.4f}, MAE: {mae:.4f}, SSIM: {ssim_value:.4f}")
 
                 results.append({
                     'model': model_name,
                     'scheme': scheme,
                     'train_dataset': os.path.basename(train_dataset_path),
-                    'test_dataset': os.path.basename(test_dataset_path),
+                    'test_dataset': os.path.basename(test_dataset_paths),
                     'test_loss': test_loss,
                     'mae': mae,
                     'ssim': ssim_value
@@ -185,14 +208,16 @@ class TrainEvalManager:
 
                 # Create and save comparison GIF
                 gif_filename = os.path.join(self.results_dir,
-                                            f'{experiment_name}_{model_name}_{scheme}_{os.path.basename(test_dataset_path)}_comparison.gif')
+                                            f'{experiment_name}_{model_name}_{scheme}_{os.path.basename(test_dataset_paths)}_comparison.gif')
                 self.create_comparison_gif(outputs, targets, gif_filename)
                 print(f"Comparison GIF saved as {gif_filename}")
+            
+    
     def run_all_experiments(self):
         for dataset_config in self.datasets_config:
             dataset_path, experiment_name = dataset_config
             for model_config in self.models_config:
-                self.run_experiment(model_config, dataset_path, experiment_name)
+                self.run_experiment(model_config, dataset_path, dataset_path, experiment_name)
 
     def run_extrapolation_experiment(self):
         train_dataset_path = "/home/sushen/PhysNet-RadarNowcast/src/datasets/rect_movie.npy"
@@ -224,15 +249,13 @@ def main():
 
     # Define your datasets
     datasets_config = [
-        ("/home/sushen/PhysNet-RadarNowcast/src/datasets/3rect_movie.npy", "3_rectangles"),
-        ("/home/sushen/PhysNet-RadarNowcast/src/datasets/11rect_movie.npy", "11_rectangles"),
-        ("/home/sushen/PhysNet-RadarNowcast/src/datasets/3rect_movie.npy", "1_rectangles"),
-        ("/home/sushen/PhysNet-RadarNowcast/src/datasets/radar_movies.npy", "Radar_movies")
+        (
+        "/home/tso/RadarConvAttention/src/datasets/radar_movies.npy", "Radar_movies")
         # Add more datasets as needed
     ]
 
     manager = TrainEvalManager(models_config, datasets_config)
-    manager.run_extrapolation_experiment()
+    manager.run_all_experiments()
 
 if __name__ == "__main__":
     main()
