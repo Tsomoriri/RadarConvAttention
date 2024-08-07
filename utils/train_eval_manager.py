@@ -339,6 +339,14 @@ class TrainEvalManager:
                         else:
                             print("    Not available")
                         print()
+                    
+                    # Add the new detailed LIME visualization
+                    explainer = LimeImageExplainer()
+                    fig = self.visualize_lime_explanations(model, test_loader, explainer)
+                    lime_filename = os.path.join(self.results_dir, f'detailed_lime_explanations_{model_name}_{scheme}.png')
+                    fig.savefig(lime_filename)
+                    plt.close(fig)
+                    print(f"Detailed LIME explanations saved as '{lime_filename}'")
                 else:
                     print("No explanation generated.")
                 print(f"Test on {os.path.basename(test_dataset_paths)}:")
@@ -434,3 +442,66 @@ class TrainEvalManager:
             import traceback
             traceback.print_exc()
             return None
+
+    def visualize_lime_explanations(self, model, test_loader, explainer, num_labels=5):
+        model.eval()
+        
+        # Get a sample from the test loader
+        for batch_x, batch_y in test_loader:
+            sample_x = batch_x[0].to(self.device)
+            break
+        
+        lime_input = sample_x.cpu().numpy()
+        
+        def predict_fn(input_array):
+            with torch.no_grad():
+                input_tensor = torch.from_numpy(input_array).float().to(self.device)
+                input_tensor = input_tensor.permute(0, 3, 1, 2).unsqueeze(1)
+                output, _ = model(input_tensor)
+                return output.view(output.size(0), -1).cpu().numpy()
+
+        def custom_segmentation(image):
+            mean_image = np.mean(image, axis=2)
+            return felzenszwalb(mean_image, scale=100, sigma=0.5, min_size=50)
+        
+        explanation = explainer.explain_instance(
+            lime_input,
+            predict_fn,
+            top_labels=num_labels,
+            hide_color=0,
+            num_samples=100,
+            segmentation_fn=custom_segmentation
+        )
+        
+        # Create a figure with subplots for each label
+        fig, axes = plt.subplots(num_labels, 2, figsize=(20, 6*num_labels))
+        
+        for idx, label in enumerate(explanation.top_labels):
+            # Get the image and mask for this label
+            temp, mask = explanation.get_image_and_mask(
+                label, positive_only=True, num_features=10, hide_rest=False
+            )
+            
+            # Plot original image
+            axes[idx, 0].imshow(np.mean(lime_input, axis=2), cmap='gray')
+            axes[idx, 0].set_title(f"Original Image")
+            axes[idx, 0].axis('off')
+            
+            # Plot LIME explanation
+            im = axes[idx, 1].imshow(mask, cmap='hot', alpha=0.7, interpolation='nearest')
+            axes[idx, 1].imshow(np.mean(lime_input, axis=2), cmap='gray', alpha=0.3)
+            axes[idx, 1].set_title(f"LIME Explanation for Label {label}")
+            axes[idx, 1].axis('off')
+            
+            # Add colorbar
+            cbar = fig.colorbar(im, ax=axes[idx, 1])
+            cbar.set_label('LIME importance')
+            
+            # Highlight the specific pixel/region for this label
+            y, x = np.unravel_index(label, lime_input.shape[:2])
+            axes[idx, 1].add_patch(plt.Circle((x, y), radius=3, color='blue', fill=False))
+            axes[idx, 1].text(x+5, y+5, f'Label {label}', color='blue', fontsize=12, 
+                              bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
+
+        plt.tight_layout()
+        return fig
