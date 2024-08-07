@@ -400,6 +400,7 @@ class TrainEvalManager:
         # Get a sample from the test loader
         for batch_x, batch_y in test_loader:
             sample_x = batch_x[0].to(self.device)  # Shape: [40, 40, 4]
+            # Ensure sample is 4D: (batch_size, height, width, channels)
             break
 
         print(f"Sample shape: {sample_x.shape}")
@@ -415,6 +416,8 @@ class TrainEvalManager:
                 
                 output, _ = model(input_tensor)
                 # output shape: [n_samples, 1, height, width]
+                if output.dim() == 5:
+                    output = output[:, -1]  # Take the last time step if 5D
                 
                 # Reshape to [n_samples, height * width]
                 return output.view(output.size(0), -1).cpu().numpy()

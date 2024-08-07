@@ -136,10 +136,19 @@ class ConvLSTM_iPINN(nn.Module):
             layer_output_list = layer_output_list[-1:]
             last_state_list = last_state_list[-1:]
 
-        # Remove the sequence length dimension before applying the output convolution
-        output = self.output_conv(layer_output_list[0].squeeze(1))
-        # Permute the output to have shape (b, h, w, c)
-        output = output.permute(0, 2, 3, 1)
+        # Modify this part
+        output = layer_output_list[0]
+        if output.dim() == 5:  # (b, t, c, h, w)
+            output = output.view(-1, *output.shape[2:])  # Reshape to (b*t, c, h, w)
+        output = self.output_conv(output)
+        
+        # Reshape back to (b, t, h, w, c) if necessary
+        if input_tensor.dim() == 5:
+            b, t, _, h, w = input_tensor.size()
+            output = output.view(b, t, h, w, -1)
+        else:
+            output = output.permute(0, 2, 3, 1)  # (b, h, w, c)
+
         return output, last_state_list
 
     def _init_hidden(self, batch_size, image_size):
