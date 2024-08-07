@@ -43,7 +43,7 @@ class ShiftingWindowAttention(nn.Module):
 
 class ConvLSTMCell(nn.Module):
     def __init__(self, input_dim, hidden_dim, kernel_size, bias, physics_kernel_size, window_size, num_heads):
-        super(ConvLSTMCell, self).__init__()
+        super().__init__()
 
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
@@ -117,7 +117,7 @@ class ConvLSTMCell(nn.Module):
 class ConvLSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, kernel_size, num_layers, physics_kernel_size, output_dim,
                  batch_first=False, bias=True, return_all_layers=False, window_size=8, num_heads=4):
-        super(ConvLSTM, self).__init__()
+        super().__init__()
 
         self._check_kernel_size_consistency(kernel_size)
 
@@ -210,7 +210,7 @@ class ConvLSTM(nn.Module):
     @staticmethod
     def _check_kernel_size_consistency(kernel_size):
         if not (isinstance(kernel_size, tuple) or
-                (isinstance(kernel_size, list) and all([isinstance(elem, tuple) for elem in kernel_size]))):
+                (isinstance(kernel_size, list) and all(isinstance(elem, tuple) for elem in kernel_size))):
             raise ValueError('`kernel_size` must be tuple or list of tuples')
 
     @staticmethod
