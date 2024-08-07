@@ -1,0 +1,9 @@
+{
+    "model": "convlstm",
+    "scheme": "standard",
+    "train_dataset": "radar_movies.npy",
+    "test_dataset": "radar_movies.npy",
+    "test_loss": 943.2425948162468,
+    "mae": 12720.758310746174,
+    "ssim": 0.6343934788293565
+}

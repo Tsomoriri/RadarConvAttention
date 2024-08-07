@@ -1,0 +1,9 @@
+{
+    "model": "convlstm_physics",
+    "scheme": "physics",
+    "train_dataset": "radar_movies.npy",
+    "test_dataset": "radar_movies.npy",
+    "test_loss": 938.1206378547513,
+    "mae": 12834.771803252552,
+    "ssim": 0.6278925153165177
+}

@@ -41,7 +41,7 @@ import io
 from PIL import Image
 
 class TrainEvalManager:
-    def __init__(self, models_config, datasets_config, device='cuda', batch_size=32, num_epochs=2, learning_rate=0.001):
+    def __init__(self, models_config, datasets_config, device='cuda', batch_size=32, num_epochs=50, learning_rate=0.001):
         self.models_config = models_config
         self.datasets_config = datasets_config
         self.device = torch.device(device if torch.cuda.is_available() else 'cpu')
@@ -201,7 +201,66 @@ class TrainEvalManager:
                     print(f"Test on {os.path.basename(test_dataset_path)}:")
                     print(f"Test Loss: {test_loss:.4f}, MAE: {mae:.4f}, SSIM: {ssim_value:.4f}")
 
+                     # Generate LIME explanation
+                    explanation = self.explain_predictions(model, test_loader)
                     
+                    if explanation:
+                        # Get all labels explained by LIME
+                        labels = explanation.top_labels
+
+                        # Create a figure with subplots for each label
+                        fig, axes = plt.subplots(len(labels), 1, figsize=(10, 5*len(labels)))
+                        if len(labels) == 1:
+                            axes = [axes]  # Ensure axes is always a list
+
+                        for idx, label in enumerate(labels):
+                            temp, mask = explanation.get_image_and_mask(
+                                label, positive_only=True, num_features=5, hide_rest=True
+                            )
+                            axes[idx].imshow(mask, cmap='RdBu_r', alpha=0.7)
+                            axes[idx].set_title(f"LIME Explanation for Label {label}")
+                            fig.colorbar(axes[idx].imshow(mask, cmap='RdBu_r', alpha=0.7), ax=axes[idx])
+
+                        plt.tight_layout()
+                        lime_filename = os.path.join(self.results_dir, f'lime_explanations_{model_name}_{scheme}.png')
+                        plt.savefig(lime_filename)
+                        print(f"LIME explanations saved as '{lime_filename}'")
+
+                        # Print additional information about the explanation
+                        for label in explanation.top_labels:
+                            print(f"Label {label}:")
+                            if hasattr(explanation, 'local_pred') and explanation.local_pred is not None:
+                                if isinstance(explanation.local_pred, (list, np.ndarray)):
+                                    print(f"  Local prediction: {explanation.local_pred[0]}")
+                                else:
+                                    print(f"  Local prediction: {explanation.local_pred}")
+                            else:
+                                print("  Local prediction: Not available")
+                            
+                            if hasattr(explanation, 'intercept') and explanation.intercept is not None:
+                                if isinstance(explanation.intercept, dict):
+                                    print(f"  Intercept: {explanation.intercept.get(label, 'Not available')}")
+                                else:
+                                    print(f"  Intercept: {explanation.intercept}")
+                            else:
+                                print("  Intercept: Not available")
+                            
+                            print("  Top features:")
+                            if hasattr(explanation, 'local_exp') and explanation.local_exp is not None:
+                                if isinstance(explanation.local_exp, dict) and label in explanation.local_exp:
+                                    for feature, weight in sorted(explanation.local_exp[label], key=lambda x: abs(x[1]), reverse=True)[:5]:
+                                        print(f"    Feature {feature}: {weight}")
+                                else:
+                                    print("    Not available")
+                            else:
+                                print("    Not available")
+                            print()
+                    else:
+                        print("No explanation generated.")
+                    print(f"Test on {os.path.basename(test_dataset_paths)}:")
+                    print(f"Test Loss: {test_loss:.4f}, MAE: {mae:.4f}, SSIM: {ssim_value:.4f}")
+
+                        
                     results.append({
                         'model': model_name,
                         'scheme': scheme,
@@ -217,6 +276,12 @@ class TrainEvalManager:
                                                 f'{experiment_name}_{model_name}_{scheme}_{os.path.basename(test_dataset_path)}_comparison.gif')
                     self.create_comparison_gif(outputs, targets, gif_filename)
                     print(f"Comparison GIF saved as {gif_filename}")
+
+                    # Save results dictionary
+                    results_filename = gif_filename.replace('.gif', '_results.json')
+                    with open(results_filename, 'w') as f:
+                        json.dump(results[-1], f, indent=4)
+                    print(f"Results saved as {results_filename}")
             else:
                 _,test_loader = self.load_data(test_dataset_paths)
                 test_loss, mae, ssim_value, outputs, targets = self.evaluate_model(model, test_loader)
@@ -294,7 +359,13 @@ class TrainEvalManager:
                                             f'{experiment_name}_{model_name}_{scheme}_{os.path.basename(test_dataset_paths)}_comparison.gif')
                 self.create_comparison_gif(outputs, targets, gif_filename)
                 print(f"Comparison GIF saved as {gif_filename}")
-            
+
+                # Save results dictionary
+                results_filename = gif_filename.replace('.gif', '_results.json')
+                with open(results_filename, 'w') as f:
+                    json.dump(results[-1], f, indent=4)
+                print(f"Results saved as {results_filename}")
+                            
     
     def run_all_experiments(self):
         for dataset_config in self.datasets_config:

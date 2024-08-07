@@ -42,13 +42,6 @@ def get_model_class(model_name):
     raise ValueError(f"Model class '{model_name}' not found")
 
 def parse_params(params_str):
-    def convert_to_tuple(obj):
-        if isinstance(obj, list):
-            return tuple(obj)
-        elif isinstance(obj, dict):
-            return {k: convert_to_tuple(v) for k, v in obj.items()}
-        return obj
-
     try:
         params = json.loads(params_str)
     except json.JSONDecodeError:
@@ -58,7 +51,17 @@ def parse_params(params_str):
             print(f"Error parsing parameters: {params_str}")
             return None
     
-    return convert_to_tuple(params)
+    # Convert tuples to lists for JSON compatibility
+    def convert_tuples(obj):
+        if isinstance(obj, tuple):
+            return list(obj)
+        elif isinstance(obj, list):
+            return [convert_tuples(item) for item in obj]
+        elif isinstance(obj, dict):
+            return {key: convert_tuples(value) for key, value in obj.items()}
+        return obj
+    
+    return convert_tuples(params)
 
 def main():
     # Parse command line arguments
@@ -83,7 +86,20 @@ def main():
             model_params = parse_params(params)
             if model_params is None:
                 continue
-            print(f"Model Parameters: {model_params}")  # Add this line for debugging
+            # Convert specific parameters to the correct type
+            if 'hidden_dim' in model_params:
+                if isinstance(model_params['hidden_dim'], list):
+                    model_params['hidden_dim'] = [int(h) for h in model_params['hidden_dim']]
+                else:
+                    model_params['hidden_dim'] = int(model_params['hidden_dim'])
+            
+            if 'kernel_size' in model_params:
+                model_params['kernel_size'] = tuple(model_params['kernel_size'])
+            
+            if 'physics_kernel_size' in model_params:
+                model_params['physics_kernel_size'] = tuple(model_params['physics_kernel_size'])
+            
+            print(f"Model Parameters: {model_params}")
             schemes = ast.literal_eval(config['Schemes'][model_name])
             models_config.append((model_name, model_class, model_params, schemes))
         except ValueError as e:
