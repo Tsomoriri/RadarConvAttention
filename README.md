@@ -70,5 +70,11 @@ pip install -r requirements.txt
 
 ```
 - Run the train and eval scripts to train the models and evaluate their performance.
+```
+/path/to/python/venv or conda -m  src.train_eval --config /path/to/config.ini
+```
 - Add dataset and model paths to the config dictionary of train and eval script.
-
+- Dataset can be generated from synthetic data and radar movie is available via git lfs
+```
+src.datasets/*.npy
+```
