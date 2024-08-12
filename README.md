@@ -21,7 +21,7 @@ src.datasets/*.npy
 ```
 
 
-## Architecture
+## Architecture 
 
 Our model architecture consists of four main variants:
 

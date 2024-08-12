@@ -1,10 +1,11 @@
-import os
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import random
+
+
 class synData:
-    def __init__(self,x,y,t,pde,mux,muy,ictype='gaussian',n_blobs=5):
+    def __init__(self, x, y, t, pde, mux, muy, ictype="gaussian", n_blobs=5):
         self.x = x
         self.y = y
         self.t = t
@@ -14,21 +15,24 @@ class synData:
         self.ictype = ictype
         self.n_blobs = n_blobs
         random.seed(23)
+
     # def u0(self,x):
     #     return np.exp(-100 * (x - 0.2) ** 2)  # gaussian wave
     #
 
     def u0(self, x, y):
-        if self.ictype == 'random':
+        if self.ictype == "random":
             result = np.zeros_like(x)
             for _ in range(self.n_blobs):
                 center_x = random.random()
                 center_y = random.random()
                 result += np.exp(-100 * ((x - center_x) ** 2 + (y - center_y) ** 2))
-        elif self.ictype == 'normal':
-            return np.exp(-100 * (x - 0.2) ** 2) * np.exp(-100 * (y - 0.2) ** 2)  # gaussian wave
+        elif self.ictype == "normal":
+            return np.exp(-100 * (x - 0.2) ** 2) * np.exp(
+                -100 * (y - 0.2) ** 2
+            )  # gaussian wave
 
-        elif self.ictype == 'rect':
+        elif self.ictype == "rect":
             result = np.zeros_like(x)
 
             # Define the rectangle boundaries
@@ -47,7 +51,7 @@ class synData:
             gradient = np.exp(x_gradient * y_gradient)
             result[x_mask & y_mask] = gradient[x_mask & y_mask]
 
-        elif self.ictype == '3rect':
+        elif self.ictype == "3rect":
             result = np.zeros_like(x)
 
             for _ in range(self.n_blobs):
@@ -80,16 +84,16 @@ class synData:
             if np.max(result) > 0:
                 result = result / np.max(result)
 
-
         return result
+
     def generate_training_data(self):
         xr = np.linspace(0, 1, self.x)
         yr = np.linspace(0, 1, self.y)
         tr = np.linspace(0, self.t - 1, self.t).T
         xrmesh, yrmesh, trmesh = np.meshgrid(xr, yr, tr)
-        print('xrmesh',xrmesh.shape)
+        print("xrmesh", xrmesh.shape)
         ur = self.u_2d_true(xrmesh, yrmesh, trmesh)
-        print('ur',ur.shape)
+        print("ur", ur.shape)
         # Stack the 3 2D arrays along a new third dimension, then reshape into a 2D array
         in_data = np.stack((xrmesh, yrmesh, trmesh), axis=-1).reshape(-1, 3)
         in_data = torch.tensor(in_data).float()
@@ -116,9 +120,9 @@ class synData:
 
     def plot_data(self, xrmesh, yrmesh, rout_data2):
         plt.contourf(xrmesh[:, :, 0], yrmesh[:, :, 0], rout_data2[:, :, 0])
-        plt.xlabel('X')
-        plt.ylabel('Y')
-        plt.title('Initial State with  Blobs (torch) at t=0')
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.title("Initial State with  Blobs (torch) at t=0")
         plt.colorbar()
         plt.colorbar()
         plt.show()
@@ -154,9 +158,7 @@ class synData:
                     current_muy = muy
 
                 movie[frame, :, :, i] = self.u_2d_true(
-                    x_mesh - current_mux * t[i],
-                    y_mesh - current_muy * t[i],
-                    t[i]
+                    x_mesh - current_mux * t[i], y_mesh - current_muy * t[i], t[i]
                 )
 
         return movie
@@ -185,9 +187,7 @@ class synData:
                     current_muy = muy
 
                 movie[frame, :, :, i] = self.u_2d_true(
-                    x_mesh - current_mux * t[i],
-                    y_mesh - current_muy * t[i],
-                    t[i]
+                    x_mesh - current_mux * t[i], y_mesh - current_muy * t[i], t[i]
                 )
         return movie
 
@@ -220,11 +220,16 @@ class synData:
             vx = np.random.uniform(-0.5, 0.5)
             vy = np.random.uniform(-0.5, 0.5)
 
-            rectangles.append({
-                'x_min': x_min, 'y_min': y_min,
-                'x_max': x_max, 'y_max': y_max,
-                'vx': vx, 'vy': vy
-            })
+            rectangles.append(
+                {
+                    "x_min": x_min,
+                    "y_min": y_min,
+                    "x_max": x_max,
+                    "y_max": y_max,
+                    "vx": vx,
+                    "vy": vy,
+                }
+            )
 
         # Generate movie frames
         for frame in range(n_frames):
@@ -236,8 +241,8 @@ class synData:
                     time = (frame * self.t + t) / (n_frames * self.t)
 
                     # Update rectangle position based on its velocity
-                    x_min = (rect['x_min'] + rect['vx'] * time) % 1
-                    y_min = (rect['y_min'] + rect['vy'] * time) % 1
+                    x_min = (rect["x_min"] + rect["vx"] * time) % 1
+                    y_min = (rect["y_min"] + rect["vy"] * time) % 1
                     x_max = (x_min + width) % 1
                     y_max = (y_min + height) % 1
 
@@ -273,12 +278,11 @@ class synData:
         np.save(filename, movie)
 
     def plot_data(self, xrmesh, yrmesh, rout_data2):
-
         for t in range(2):
             plt.contourf(xrmesh[:, :, t], yrmesh[:, :, t], rout_data2[:, :, t])
-            plt.xlabel('X')
-            plt.ylabel('Y')
-            plt.title('Initial State with  Blobs (torch) at t=0')
+            plt.xlabel("X")
+            plt.ylabel("Y")
+            plt.title("Initial State with  Blobs (torch) at t=0")
             plt.colorbar()
             plt.colorbar()
             plt.show()

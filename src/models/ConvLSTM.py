@@ -1,6 +1,6 @@
-
 import torch
 import torch.nn as nn
+
 
 class ConvLSTMCell(nn.Module):
     def __init__(self, input_dim, hidden_dim, kernel_size, bias, physics_kernel_size):
@@ -13,23 +13,29 @@ class ConvLSTMCell(nn.Module):
         self.padding = kernel_size[0] // 2, kernel_size[1] // 2
         self.bias = bias
 
-        self.conv = nn.Conv2d(in_channels=self.input_dim + self.hidden_dim,
-                            out_channels=4 * self.hidden_dim,
-                            kernel_size=self.kernel_size,
-                            padding=self.padding,
-                            bias=self.bias)
+        self.conv = nn.Conv2d(
+            in_channels=self.input_dim + self.hidden_dim,
+            out_channels=4 * self.hidden_dim,
+            kernel_size=self.kernel_size,
+            padding=self.padding,
+            bias=self.bias,
+        )
 
-        self.physics_conv_x = nn.Conv2d(in_channels=self.input_dim,
-                                        out_channels=self.hidden_dim,
-                                        kernel_size=physics_kernel_size,
-                                        padding=physics_kernel_size[0] // 2,
-                                        bias=False)
+        self.physics_conv_x = nn.Conv2d(
+            in_channels=self.input_dim,
+            out_channels=self.hidden_dim,
+            kernel_size=physics_kernel_size,
+            padding=physics_kernel_size[0] // 2,
+            bias=False,
+        )
 
-        self.physics_conv_y = nn.Conv2d(in_channels=self.input_dim,
-                                        out_channels=self.hidden_dim,
-                                        kernel_size=physics_kernel_size,
-                                        padding=physics_kernel_size[1] // 2,
-                                        bias=False)
+        self.physics_conv_y = nn.Conv2d(
+            in_channels=self.input_dim,
+            out_channels=self.hidden_dim,
+            kernel_size=physics_kernel_size,
+            padding=physics_kernel_size[1] // 2,
+            bias=False,
+        )
 
     def forward(self, input_tensor, cur_state):
         h_cur, c_cur = cur_state
@@ -40,11 +46,15 @@ class ConvLSTMCell(nn.Module):
 
         # Ensure the number of channels in input_tensor matches the input_dim
         if input_tensor.size(1) != self.input_dim:
-            raise ValueError(f"Expected input_tensor to have {self.input_dim} channels, but got {input_tensor.size(1)} channels instead")
+            raise ValueError(
+                f"Expected input_tensor to have {self.input_dim} channels, but got {input_tensor.size(1)} channels instead"
+            )
 
         # Ensure the number of channels in h_cur matches the hidden_dim
         if h_cur.size(1) != self.hidden_dim:
-            raise ValueError(f"Expected h_cur to have {self.hidden_dim} channels, but got {h_cur.size(1)} channels instead")
+            raise ValueError(
+                f"Expected h_cur to have {self.hidden_dim} channels, but got {h_cur.size(1)} channels instead"
+            )
 
         combined = torch.cat([input_tensor, h_cur], dim=1)
         combined_conv = self.conv(combined)
@@ -66,12 +76,37 @@ class ConvLSTMCell(nn.Module):
 
     def init_hidden(self, batch_size, image_size):
         height, width = image_size
-        return (torch.zeros(batch_size, self.hidden_dim, height, width, device=self.conv.weight.device),
-                torch.zeros(batch_size, self.hidden_dim, height, width, device=self.conv.weight.device))
+        return (
+            torch.zeros(
+                batch_size,
+                self.hidden_dim,
+                height,
+                width,
+                device=self.conv.weight.device,
+            ),
+            torch.zeros(
+                batch_size,
+                self.hidden_dim,
+                height,
+                width,
+                device=self.conv.weight.device,
+            ),
+        )
+
 
 class ConvLSTM(nn.Module):
-    def __init__(self, input_dim, hidden_dim, kernel_size, num_layers, physics_kernel_size,output_dim,
-                 batch_first=False, bias=True, return_all_layers=False):
+    def __init__(
+        self,
+        input_dim,
+        hidden_dim,
+        kernel_size,
+        num_layers,
+        physics_kernel_size,
+        output_dim,
+        batch_first=False,
+        bias=True,
+        return_all_layers=False,
+    ):
         super().__init__()
 
         self._check_kernel_size_consistency(kernel_size)
@@ -79,7 +114,7 @@ class ConvLSTM(nn.Module):
         kernel_size = self._extend_for_multilayer(kernel_size, num_layers)
         hidden_dim = self._extend_for_multilayer(hidden_dim, num_layers)
         if not len(kernel_size) == len(hidden_dim) == num_layers:
-            raise ValueError('Inconsistent list length.')
+            raise ValueError("Inconsistent list length.")
 
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
@@ -93,17 +128,23 @@ class ConvLSTM(nn.Module):
         for i in range(0, self.num_layers):
             cur_input_dim = self.input_dim if i == 0 else self.hidden_dim[i - 1]
 
-            cell_list.append(ConvLSTMCell(input_dim=cur_input_dim,
-                                          hidden_dim=self.hidden_dim[i],
-                                          kernel_size=self.kernel_size[i],
-                                          bias=self.bias,
-                                          physics_kernel_size=physics_kernel_size))
+            cell_list.append(
+                ConvLSTMCell(
+                    input_dim=cur_input_dim,
+                    hidden_dim=self.hidden_dim[i],
+                    kernel_size=self.kernel_size[i],
+                    bias=self.bias,
+                    physics_kernel_size=physics_kernel_size,
+                )
+            )
 
         self.cell_list = nn.ModuleList(cell_list)
-        self.output_conv = nn.Conv2d(in_channels=hidden_dim[-1],
-                                      out_channels=output_dim,
-                                      kernel_size=1,
-                                      padding=0)
+        self.output_conv = nn.Conv2d(
+            in_channels=hidden_dim[-1],
+            out_channels=output_dim,
+            kernel_size=1,
+            padding=0,
+        )
 
     def forward(self, input_tensor, hidden_state=None):
         if input_tensor.dim() == 4:
@@ -132,7 +173,9 @@ class ConvLSTM(nn.Module):
             h, c = hidden_state[layer_idx]
             output_inner = []
             for t in range(seq_len):
-                h, c = self.cell_list[layer_idx](input_tensor=cur_layer_input[:, t, :, :, :], cur_state=[h, c])
+                h, c = self.cell_list[layer_idx](
+                    input_tensor=cur_layer_input[:, t, :, :, :], cur_state=[h, c]
+                )
                 output_inner.append(h)
 
             layer_output = torch.stack(output_inner, dim=1)
@@ -159,9 +202,14 @@ class ConvLSTM(nn.Module):
 
     @staticmethod
     def _check_kernel_size_consistency(kernel_size):
-        if not (isinstance(kernel_size, tuple) or
-                (isinstance(kernel_size, list) and all(isinstance(elem, tuple) for elem in kernel_size))):
-            raise ValueError('`kernel_size` must be tuple or list of tuples')
+        if not (
+            isinstance(kernel_size, tuple)
+            or (
+                isinstance(kernel_size, list)
+                and all(isinstance(elem, tuple) for elem in kernel_size)
+            )
+        ):
+            raise ValueError("`kernel_size` must be tuple or list of tuples")
 
     @staticmethod
     def _extend_for_multilayer(param, num_layers):
@@ -175,7 +223,7 @@ class ConvLSTM(nn.Module):
         """
         for name, module in self.named_modules():
             if isinstance(module, (nn.Conv2d, nn.Linear, nn.LSTM, nn.LSTMCell)):
-                if hasattr(module, 'reset_parameters'):
+                if hasattr(module, "reset_parameters"):
                     module.reset_parameters()
             elif isinstance(module, nn.BatchNorm2d):
                 module.reset_running_stats()
