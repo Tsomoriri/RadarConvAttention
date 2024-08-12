@@ -14,8 +14,8 @@ pip install -r requirements.txt
 ```
 /path/to/python/venv or conda -m  src.train_eval --config /path/to/config.ini
 ```
-- Add dataset and model paths to the config dictionary of train and eval script.
-- Dataset can be generated from synthetic data and radar movie is available via git lfs
+- Add dataset and model paths to the config dictionary of train_eval script and Train_eval_manager script.
+- Dataset can be generated from synthetic data by running tests/synthetic_data_test.py and radar movie is available via git lfs
 ```
 src.datasets/*.npy
 ```
