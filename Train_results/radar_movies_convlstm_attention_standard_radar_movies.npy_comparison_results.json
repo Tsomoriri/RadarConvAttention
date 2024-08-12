@@ -3,7 +3,7 @@
     "scheme": "standard",
     "train_dataset": "radar_movies.npy",
     "test_dataset": "radar_movies.npy",
-    "test_loss": 856.6438629773198,
-    "mae": 12828.468710140307,
-    "ssim": 0.5961204390860645
+    "test_loss": 856.7838570731027,
+    "mae": 12484.2861328125,
+    "ssim": 0.6079093572557905
 }

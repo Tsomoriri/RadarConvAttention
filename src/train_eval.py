@@ -8,10 +8,10 @@ import json
 
 from utils.train_eval_manager import TrainEvalManager
 # Import your model classes here
-from src.models.ConvLSTM import ConvLSTM
-from src.models.ConvLSTM_Physics import ConvLSTM_iPINN as ConvLSTM_Physics
-from src.models.AttentionConvLSTM import ConvLSTM as ConvLSTM_Attention
-from src.models.AttentionConvLSTM_Physics import ConvLSTM as ConvLSTM_Attention_Physics
+from src.models.ConvLSTM import ConvLSTM as convlstm
+from src.models.ConvLSTM_Physics import ConvLSTM_iPINN as convlstm_phys
+from src.models.AttentionConvLSTM import ConvLSTM as convlstm_atn
+from src.models.AttentionConvLSTM_Physics import ConvLSTM as convlstm_atn_phys
 
 def load_config(config_file):
     print(f"Current working directory: {os.getcwd()}")

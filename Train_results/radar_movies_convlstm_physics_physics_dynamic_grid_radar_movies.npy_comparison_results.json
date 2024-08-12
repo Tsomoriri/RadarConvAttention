@@ -3,7 +3,7 @@
     "scheme": "physics_dynamic_grid",
     "train_dataset": "radar_movies.npy",
     "test_dataset": "radar_movies.npy",
-    "test_loss": 942.4283609195631,
-    "mae": 12845.359454719388,
-    "ssim": 0.6244405891756895
+    "test_loss": 1218.5525263572226,
+    "mae": 16490.591796875,
+    "ssim": 0.48703438367843394
 }

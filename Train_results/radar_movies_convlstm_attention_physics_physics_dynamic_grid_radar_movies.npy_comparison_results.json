@@ -1,9 +1,9 @@
 {
-    "model": "convlstm_attention_physics",
+    "model": "convlstm_attention_physics_dynamicgrid",
     "scheme": "physics_dynamic_grid",
     "train_dataset": "radar_movies.npy",
     "test_dataset": "radar_movies.npy",
-    "test_loss": 827.2658342633929,
-    "mae": 13343.298907844388,
-    "ssim": 0.5873260935596383
+    "test_loss": 880.7046714315609,
+    "mae": 13008.236328125,
+    "ssim": 0.5750093829773906
 }

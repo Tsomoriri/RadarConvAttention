@@ -18,11 +18,11 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 # Import your model classes here
-from src.models.ConvLSTM import ConvLSTM
-from src.models.ConvLSTM_Physics import ConvLSTM_iPINN as ConvLSTM_Physics
-from src.models.AttentionConvLSTM import ConvLSTM as ConvLSTM_Attention
-from src.models.AttentionConvLSTM_Physics import ConvLSTM as ConvLSTM_Attention_Physics
-from utils.shap_manager import SHAPExplainer
+from src.models.ConvLSTM import ConvLSTM as convlstm
+from src.models.ConvLSTM_Physics import ConvLSTM_iPINN as convlstm_phys
+from src.models.AttentionConvLSTM import ConvLSTM as convlstm_atn
+from src.models.AttentionConvLSTM_Physics import ConvLSTM as convlstm_atn_phys
+
 
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
@@ -137,28 +137,62 @@ class TrainEvalManager:
         all_outputs = np.concatenate(all_outputs)
         all_targets = np.concatenate(all_targets)
 
-        return avg_loss, avg_mae, avg_ssim, all_outputs, all_targets
+        return float(avg_loss), float(avg_mae), float(avg_ssim) , all_outputs, all_targets
 
-    def update_grid(self, rin_physics):
-        # Get the shape of the input tensor
-        shape = rin_physics.shape
-        # Create an empty tensor with the same shape
-        updated_grid = np.zeros(shape)
+    # def update_grid(self, rin_physics):
+    #     # Get the shape of the input tensor
+    #     shape = rin_physics.shape
+    #     # Create an empty tensor with the same shape
+    #     updated_grid = np.zeros(shape)
 
-        # Iterate through each element in the batch
-        for i in range(shape[0]):
-            # Extract the individual grid
-            grid = rin_physics[i]
+    #     # Iterate through each element in the batch
+    #     for i in range(shape[0]):
+    #         # Extract the individual grid
+    #         grid = rin_physics[i]
 
-            # Find the max and min x, y values
-            max_x, max_y = np.unravel_index(np.argmax(grid[:, :, 0]), grid[:, :, 0].shape)
-            min_x, min_y = np.unravel_index(np.argmin(grid[:, :, 0]), grid[:, :, 0].shape)
+    #         # Find the max and min x, y values
+    #         max_x, max_y = np.unravel_index(np.argmax(grid[:, :, 0]), grid[:, :, 0].shape)
+    #         min_x, min_y = np.unravel_index(np.argmin(grid[:, :, 0]), grid[:, :, 0].shape)
 
-            # Set the pattern
-            updated_grid[i, max_x, max_y, :] = 1
-            updated_grid[i, min_x, min_y, :] = 0
+    #         # Set the pattern
+    #         updated_grid[i, max_x, max_y, :] = 1
+    #         updated_grid[i, min_x, min_y, :] = 0
+
+    #     return updated_grid
+
+    def update_grid(self,rin_physics):
+        batch_size, grid_height, grid_width, channels = rin_physics.shape
+        updated_grid = np.zeros((batch_size, grid_height, grid_width, channels))
+
+        # Define thresholds for dense and sparse grid regions
+        dense_threshold = 0.7  # Adjust as needed
+        sparse_threshold = 0.3  # Adjust as needed
+
+        for i in range(batch_size):
+            grid = rin_physics[i, :, :, 0]  # Process the first channel 
+
+            # Calculate gradients
+            grad_x, grad_y = np.gradient(grid)
+            grad_magnitude = np.sqrt(grad_x**2 + grad_y**2)
+
+            # Normalize the gradient magnitude
+            normalized_grad = (grad_magnitude - grad_magnitude.min()) / (grad_magnitude.max() - grad_magnitude.min())
+
+            # Apply the density logic
+            for x in range(grid_height):
+                for y in range(grid_width):
+                    if normalized_grad[x, y] > dense_threshold:
+                        updated_grid[i, x, y, 0] = 1  # Dense grid point
+                    elif normalized_grad[x, y] < sparse_threshold:
+                        updated_grid[i, x, y, 0] = 0  # No grid point (sparse)
+                    else:
+                        # Interpolate between dense and sparse
+                        density = (normalized_grad[x, y] - sparse_threshold) / (dense_threshold - sparse_threshold)
+                        if np.random.rand() < density:
+                            updated_grid[i, x, y, 0] = 1
 
         return updated_grid
+
     def create_comparison_gif(self, outputs, targets, filename):
         fig, ax = plt.subplots(1, 2, figsize=(10, 5))
 
@@ -260,9 +294,29 @@ class TrainEvalManager:
                     print(f"Test on {os.path.basename(test_dataset_paths)}:")
                     print(f"Test Loss: {test_loss:.4f}, MAE: {mae:.4f}, SSIM: {ssim_value:.4f}")
 
-                        
+                    def generate_save_name(model_name, model_type, version=None):
+                        """
+                        Generates a unique and descriptive save name for a model.
+
+                        Args:
+                            model_name: The base name of the model (e.g., "convlstm").
+                            model_type: A string indicating the type or architecture of the model (e.g., "2d", "3d").
+                            version: An optional version number or identifier.
+
+                        Returns:
+                            A string representing the save name for the model.
+                        """
+                        save_name = model_name.upper()  # Convert to uppercase for consistency
+
+                        if model_type:
+                            save_name += f"_{model_type.upper()}"  # Add model type if available
+
+                        if version:
+                            save_name += f"_v{version}"  # Add version if available
+
+                        return save_name    
                     results.append({
-                        'model': model_name,
+                        'model': generate_save_name(model_name, scheme),
                         'scheme': scheme,
                         'train_dataset': os.path.basename(train_dataset_path),
                         'test_dataset': os.path.basename(test_dataset_path),
