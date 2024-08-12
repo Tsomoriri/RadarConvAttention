@@ -62,15 +62,7 @@ The image above provides a visual comparison of the radar movie results for diff
 ![RMSE Metric](mse_comparison_candlestick.png)
 The image above provides a visual comparison of the RMSE results for different model variants.
 ![SSIM Metric](ssim_comparison_candlestick.png)
-The image above provides a visual comparison of the SSIM results for different model variants.
-![LIME Explanations for ConvLSTM-Attention-Physics (Dynamic Grid)](~/Train_results/detailed_lime_explanations_convlstm_atn_phys_physics_dynamic_grid.png)
-The image above provides a visual comparison of the LIME explanations for ConvLSTM-Attention-Physics (Dynamic Grid) model.
-![LIME Explanations for ConvLSTM-Attention-Physics](train_results/lime_explanations_convlstm_atn_phys_physics.png)
-The image above provides a visual comparison of the LIME explanations for ConvLSTM-Attention-Physics model.
-![LIME Explanations for ConvLSTM-Attention](lime_explanations_convlstm_atn.png)
-The image above provides a visual comparison of the LIME explanations for ConvLSTM-Attention model.
-![LIME Explanations for ConvLSTM](detailed_lime_explanations_convlstm_standard.png)
-The image above provides a visual comparison of the LIME explanations for ConvLSTM model.
+
 
 
 ## Conclusion
