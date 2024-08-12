@@ -4,6 +4,23 @@
 
 This project addresses the challenge of radar-based precipitation nowcasting by integrating physical laws with advanced machine learning techniques. We propose a novel approach that combines Convolutional Long Short-Term Memory (ConvLSTM) networks with physics-informed regularization and attention mechanisms to improve the accuracy and reliability of short-term weather predictions.
 
+## Getting Started
+
+```
+pip install -r requirements.txt
+
+```
+- Run the train and eval scripts to train the models and evaluate their performance.
+```
+/path/to/python/venv or conda -m  src.train_eval --config /path/to/config.ini
+```
+- Add dataset and model paths to the config dictionary of train and eval script.
+- Dataset can be generated from synthetic data and radar movie is available via git lfs
+```
+src.datasets/*.npy
+```
+
+
 ## Architecture
 
 Our model architecture consists of four main variants:
@@ -69,18 +86,3 @@ The image above provides a visual comparison of the RMSE results for different m
 
 Our research demonstrates that incorporating physics-informed regularization and attention mechanisms significantly improves the accuracy and reliability of radar-based precipitation nowcasting. The proposed models show enhanced performance in both extrapolation tasks and real-world nowcasting scenarios, highlighting the potential of combining data-driven approaches with physical insights in weather prediction.
 
-## Getting Started
-
-```
-pip install -r requirements.txt
-
-```
-- Run the train and eval scripts to train the models and evaluate their performance.
-```
-/path/to/python/venv or conda -m  src.train_eval --config /path/to/config.ini
-```
-- Add dataset and model paths to the config dictionary of train and eval script.
-- Dataset can be generated from synthetic data and radar movie is available via git lfs
-```
-src.datasets/*.npy
-```
