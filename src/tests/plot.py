@@ -45,7 +45,8 @@ def shorten_model_name(name):
 
 # Extract the relevant metrics
 labels = ['RMSE', 'MAE', 'SSIM']
-model_names = [['model'] for d in data]
+model_names = [d['model'] for d in data]
+print("model names for radar scatter are:->>",model_names)
 values = [[d['test_loss'], d['mae'], d['ssim']] for d in data]
 
 # New normalization function
