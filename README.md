@@ -6,6 +6,9 @@ This project addresses the challenge of radar-based precipitation nowcasting by 
 
 ## Getting Started
 
+- Create a conda or python virtual environment
+- Install the requirements
+
 ```
 pip install -r requirements.txt
 
