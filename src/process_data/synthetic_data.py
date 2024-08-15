@@ -5,6 +5,30 @@ import random
 
 
 class synData:
+    """
+    A class to generate synthetic data for PDE simulations.
+
+    Attributes:
+        x (int): Number of spatial points in the x-direction.
+        y (int): Number of spatial points in the y-direction.
+        t (int): Number of time steps.
+        pde (str): The type of partial differential equation.
+        mux (float): Velocity in the x-direction.
+        muy (float): Velocity in the y-direction.
+        ictype (str): Initial condition type ('gaussian', 'random', 'normal', 'rect', '3rect').
+        n_blobs (int): Number of blobs for random initial conditions.
+
+    Methods:
+        u0(x, y): Computes the initial condition based on the specified type.
+        generate_training_data(): Generates training data for the PDE.
+        generate_test_data(): Generates test data for the PDE.
+        u_2d_true(x, y, t): Computes the true solution of the 2D advection equation.
+        plot_data(xrmesh, yrmesh, rout_data2): Plots the data at a given time step.
+        generate_movie(n_frames, nx, ny, nt): Generates a movie of the PDE solution.
+        generate_ill_movie(n_frames, nx, ny, nt): Generates a movie with individual velocities.
+        generate_rectangles_with_individual_velocities(): Generates rectangles with individual velocities.
+        save_movie(movie, filename): Saves the generated movie to a file.
+    """
     def __init__(self, x, y, t, pde, mux, muy, ictype="gaussian", n_blobs=5):
         self.x = x
         self.y = y
@@ -15,10 +39,6 @@ class synData:
         self.ictype = ictype
         self.n_blobs = n_blobs
         random.seed(23)
-
-    # def u0(self,x):
-    #     return np.exp(-100 * (x - 0.2) ** 2)  # gaussian wave
-    #
 
     def u0(self, x, y):
         if self.ictype == "random":
@@ -111,10 +131,7 @@ class synData:
         test_data = np.stack((xrmesh, yrmesh, trmesh), axis=-1).reshape(-1, 3)
         test_data = torch.tensor(test_data).float()
         return test_data
-
-    # 2D advection equation
-    # def u_2d_true(self,x,y,t):
-    #     return self.u0(x - self.mux * t) * self.u0(y - self.muy * t)
+    
     def u_2d_true(self, x, y, t):
         return self.u0(x - self.mux * t, y - self.muy * t)
 
@@ -137,8 +154,8 @@ class synData:
         x_mesh, y_mesh = np.meshgrid(x, y)
 
         for frame in range(n_frames):
-            # Determine which velocity type to use for this frame
-            rand_num = random.random()
+           
+            rand_num = random.random()  # Determine which velocity type to use for this frame
 
             if rand_num < 0.4:  # 40% randomly generated velocity
                 mux = random.uniform(0, 1)
@@ -173,8 +190,8 @@ class synData:
         x_mesh, y_mesh = np.meshgrid(x, y)
 
         for frame in range(n_frames):
-            # Determine which velocity type to use for this frame
-            rand_num = random.random()
+            
+            rand_num = random.random() # Determine which velocity type to use for this frame
             base_velocity = random.uniform(0, 1)
             mux = muy = lambda t: base_velocity * np.exp(np.sin(2 * np.pi * t))
 
@@ -192,23 +209,22 @@ class synData:
         return movie
 
     def generate_rectangles_with_individual_velocities(self):
-        # Fixed parameters
+        
         n_frames = 980
 
-        # Initialize the movie array
         movie = np.zeros((n_frames, self.y, self.x, self.t))
 
-        # Create coordinate meshgrid
+       
         x = np.linspace(0, 1, self.x)
         y = np.linspace(0, 1, self.y)
         x_mesh, y_mesh = np.meshgrid(x, y)
 
-        # Fixed size for each rectangle
+        
         width = 0.038
         height = 0.038
 
-        # Generate n rectangles
-        rectangles = []
+        
+        rectangles = [] # Generate n rectangles
         for _ in range(self.n_blobs):
             # Randomly position the rectangle
             x_min = np.random.uniform(0, 1 - width)

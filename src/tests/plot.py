@@ -108,14 +108,14 @@ for i, (model, value) in enumerate(zip(model_names, normalized_values)):
 
 # Customize the chart
 ax.set_xticks(angles[:-1])
-ax.set_xticklabels(labels, fontsize=12)
+ax.set_xticklabels(labels, fontsize=14)
 ax.set_ylim(0, 1)
 ax.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
 ax.set_yticklabels(["0.2", "0.4", "0.6", "0.8", "1.0"], fontsize=8)
 ax.grid(True, color="gray", linestyle="--", alpha=0.5)
 
 # Add a legend outside the plot
-plt.legend(loc="center left", bbox_to_anchor=(1, 0.5), fontsize=8)
+plt.legend(loc="lower left", bbox_to_anchor=(1, 0.5), fontsize=18)
 
 # Adjust the layout and save the figure
 plt.tight_layout()
@@ -173,7 +173,7 @@ def plot_mse_comparison(save_path="mse_comparison_candlestick.png"):
     baseline_3 = mse_3_particles[0]
     baseline_11 = mse_11_particles[0]
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), dpi=300)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(18, 10), dpi=300)
 
     for ax, data, baseline, title in zip(
         [ax1, ax2],
@@ -198,7 +198,7 @@ def plot_mse_comparison(save_path="mse_comparison_candlestick.png"):
 
         ax.set_ylim(min(low_data) * 0.9, max(high_data) * 1.1)
         ax.set_xticks(range(len(models)))
-        ax.set_xticklabels(models, rotation=45, ha="right")
+        ax.set_xticklabels(models, rotation=45, ha="right", fontsize= 18)
         ax.set_title(f"MSE Comparison - {title}", fontsize=14, fontweight="bold")
         ax.set_ylabel("MSE", fontsize=12)
         ax.grid(True, linestyle="--", alpha=0.7)
@@ -249,7 +249,7 @@ def plot_real_radar_data(save_path="real_radar_data_candlestick.png"):
 
     ax.set_ylim(min(low_data) * 0.9, max(high_data) * 1.1)
     ax.set_xticks(range(len(models)))
-    ax.set_xticklabels(models, rotation=45, ha="right")
+    ax.set_xticklabels(models, rotation=45, ha="right",fontsize=18)
     ax.set_title("MSE Comparison on Real Radar Data", fontsize=14, fontweight="bold")
     ax.set_ylabel("MSE", fontsize=12)
     ax.grid(True, linestyle="--", alpha=0.7)
@@ -320,7 +320,7 @@ def plot_ssim_comparison(data, save_path="ssim_comparison_candlestick.png"):
 
     ax.set_ylim(min(low_data) * 0.9, max(high_data) * 1.1)
     ax.set_xticks(range(len(models)))
-    ax.set_xticklabels(models, rotation=45, ha="right")
+    ax.set_xticklabels(models, rotation=45, ha="right",fontsize=18)
     ax.set_title("SSIM Comparison", fontsize=14, fontweight="bold")
     ax.set_ylabel("SSIM", fontsize=12)
     ax.grid(True, linestyle="--", alpha=0.7)

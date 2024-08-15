@@ -317,11 +317,6 @@ class ConvLSTM(nn.Module):
                     nn.init.constant_(module.weight, 1.0)
                     nn.init.constant_(module.bias, 0.0)
 
-        # If the model has any custom parameters, reset them here
-        # For example:
-        # if hasattr(self, 'custom_weight'):
-        #     nn.init.xavier_uniform_(self.custom_weight)
-        # if hasattr(self, 'custom_bias'):
-        #     nn.init.zeros_(self.custom_bias)
+        
 
         print(f"Parameters of {self.__class__.__name__} have been reset.")

@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ```
 src.datasets/*.npy
 ```
-
+- The dataset for extrapolation testing can be generated via the api example in src.tests.synthetic_data_test
 
 ## Architecture 
 
@@ -84,5 +84,5 @@ The image above provides a visual comparison of the RMSE results for different m
 
 ## Conclusion
 
-Our research demonstrates that incorporating physics-informed regularization and attention mechanisms significantly improves the accuracy and reliability of radar-based precipitation nowcasting. The proposed models show enhanced performance in both extrapolation tasks and real-world nowcasting scenarios, highlighting the potential of combining data-driven approaches with physical insights in weather prediction.
+Our research demonstrates that incorporating physics-informed regularization and attention mechanisms significantly improves the accuracy and reliability of radar-based precipitation nowcasting. The proposed models show enhanced performance in both extrapolation tasks and real-world nowcasting scenarios. This demonstrates the potential of combining data-driven approaches with physical insights in weather prediction.
 

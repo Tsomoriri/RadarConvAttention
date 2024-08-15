@@ -22,6 +22,30 @@ from skimage.segmentation import felzenszwalb
 
 
 class TrainEvalManager:
+    """
+    A class to manage the training and evaluation of machine learning models.
+
+    Attributes:
+        models_config (list): Configuration for the models to be trained.
+        datasets_config (list): Configuration for the datasets used in training and testing.
+        device (torch.device): The device to run the model on (CPU or GPU).
+        batch_size (int): The number of samples per batch.
+        num_epochs (int): The number of epochs for training.
+        learning_rate (float): The learning rate for the optimizer.
+        results_dir (str): Directory to save training results and visualizations.
+
+    Methods:
+        load_data(path): Loads and splits the dataset into training and testing sets.
+        train_model(model, train_loader, optimizer, loss_fn, scheme): Trains the model on the training data.
+        evaluate_model(model, test_loader): Evaluates the model on the test data.
+        update_grid(rin_physics): Updates the grid based on physics-based logic.
+        create_comparison_gif(outputs, targets, filename): Creates a GIF comparing model outputs and ground truth.
+        run_experiment(model_config, train_dataset_path, test_dataset_paths, experiment_name): Runs a training and evaluation experiment.
+        run_all_experiments(): Runs experiments for all datasets and models.
+        run_extrapolation_experiment(): Runs a specific extrapolation experiment.
+        explain_predictions(model, test_loader): Generates LIME explanations for model predictions.
+        visualize_lime_explanations(model, test_loader, explainer, num_labels=5): Visualizes LIME explanations for multiple labels.
+    """
     def __init__(
         self,
         models_config,
@@ -370,6 +394,7 @@ class TrainEvalManager:
                         if version:
                             save_name += f"_v{version}"  # Add version if available
 
+                
                         return save_name
 
                     results.append(

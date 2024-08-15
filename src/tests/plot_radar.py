@@ -95,7 +95,7 @@ def visualize_grids(radar_image, updated_grid, grid_size=40):
     plt.show()
 
 
-# Example usage:
+# Usage
 radar_image = load_radar_image()  # Load your radar image
 print(radar_image.shape)
 updated_grid = update_grid(radar_image)  # Update the grid based on your logic

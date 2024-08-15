@@ -4,6 +4,17 @@ from torch.utils.data import DataLoader, TensorDataset
 
 
 class radarEcho:
+    """
+    A class to handle the generation of training data for radar echo models.
+
+    Attributes:
+        tn (int): The number of input images to use for training.
+        pn (int): The number of output images to predict.
+
+    Methods:
+        generate_training_data(): Loads radar movie data, splits it into training,
+                                validation, and test sets, and prepares DataLoaders.
+    """
     def __init__(self, tn, pn):
         self.tn = tn
         self.pn = pn
