@@ -3,7 +3,7 @@
 ## Overview
 
 This project addresses the challenge of radar-based precipitation nowcasting by integrating physical laws with advanced machine learning techniques. We propose a novel approach that combines Convolutional Long Short-Term Memory (ConvLSTM) networks with physics-informed regularization and attention mechanisms to improve the accuracy and reliability of short-term weather predictions.
-The paper is published at [(report.pdf)]
+The paper is published at [Research Report](report.pdf)
 
 ## Getting Started
 
