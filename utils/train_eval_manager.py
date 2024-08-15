@@ -564,11 +564,11 @@ class TrainEvalManager:
 
     def run_extrapolation_experiment(self):
         train_dataset_path = (
-            "/home/sushen/PhysNet-RadarNowcast/src/datasets/rect_movie.npy"
+            "/path/to/src/datasets/rect_movie.npy"
         )
         test_dataset_paths = [
-            "/home/sushen/PhysNet-RadarNowcast/src/datasets/3rect_movie.npy",
-            "/home/sushen/PhysNet-RadarNowcast/src/datasets/11rect_movie.npy",
+            "/path/to/src/datasets/3rect_movie.npy",
+            "/path/to/src/datasets/11rect_movie.npy",
         ]
         experiment_name = "train_1rect_test_3_11rect"
 
