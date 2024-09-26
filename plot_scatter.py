@@ -1,7 +1,8 @@
 import os
-import matplotlib.pyplot as plt
 import json
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import make_interp_spline, BSpline
 
 
 def load_results_with_key_mapping(folder_path):
@@ -34,9 +35,11 @@ def load_results_with_key_mapping(folder_path):
                     print(f"Skipping invalid JSON file: {filename}")
     return results
 
+
 # Example Usage:
-folder_path = "/home/tso/RadarConvAttention/Train_results"  # Replace with your folder path
-#data = load_results_with_key_mapping(folder_path)
+# Replace with your folder path
+folder_path = "/home/tso/RadarConvAttention/Train_results"
+# data = load_results_with_key_mapping(folder_path)
 
 
 data = {
@@ -51,25 +54,26 @@ data = {
     'convlstm_physics': {'rmse': 1214.1238677355707, 'mae': 16603.15234375, 'ssim': 0.4765177258526705, 'technique': 'physics'}
 }
 
-from scipy.interpolate import make_interp_spline, BSpline
 
-import matplotlib.pyplot as plt
-import numpy as np
 plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
 
 
 # Data
-techniques = ['ConvLSTM', '+ Physics', '+ Attention', '+ Att.\n+ Phys.', '+ Att.\n+ Phys.\n+ DG']
+techniques = ['ConvLSTM', '+ Physics', '+ Attention',
+              '+ Att.\n+ Phys.', '+ Att.\n+ Phys.\n+ DG']
 rmse = [947.81, 940.92, 819.34, 802.32, 827.05]
 mae = [12993.75, 12957.13, 1383.73, 12294.87, 12896.12]
 ssim = [0.6190, 0.6219, 0.5810, 0.6218, 0.5914]
 
 # Normalize the data to 0.1-0.8 range
+
+
 def normalize(data):
     normalized = (data - np.min(data)) / (np.max(data) - np.min(data))
     return 0.1 + normalized * 0.7
+
 
 rmse_norm = 1 - normalize(rmse)  # Invert RMSE so higher is better
 mae_norm = 1 - normalize(mae)    # Invert MAE so higher is better
@@ -78,51 +82,56 @@ ssim_norm = normalize(ssim)      # SSIM is already in the correct direction
 # Selected Exeter colors for better visibility
 colors = ['#005C3C', '#C84B31', '#8F3931']  # Dark Green, Orange, Dark Red
 
+
 def create_smooth_overlay_plot(rmse_data, mae_data, ssim_data, filename):
     fig, ax = plt.subplots(figsize=(12, 6))  # Increased width for label space
-    
+
     metrics = [rmse_data, mae_data, ssim_data]
     labels = ['RMSE', 'MAE', 'SSIM']
-    
+
     x = np.arange(len(techniques))
     x_smooth = np.linspace(x.min(), x.max(), 300)
-    
+
     for i, (metric, label) in enumerate(zip(metrics, labels)):
         # Add padding to prevent breaks at extremes
         x_padded = np.concatenate(([x[0] - 0.1], x, [x[-1] + 0.1]))
         y_padded = np.concatenate(([metric[0]], metric, [metric[-1]]))
-        
+
         spl = make_interp_spline(x_padded, y_padded, k=3)
         y_smooth = spl(x_smooth)
         line, = ax.plot(x_smooth, y_smooth, color=colors[i], linewidth=2)
         ax.scatter(x, metric, color=colors[i], s=30, zorder=3)
-        
+
         # Add label at the end of each line
-        ax.text(x[-1] + 0.1, metric[-1], f'{label}', 
+        ax.text(x[-1] + 0.1, metric[-1], f'{label}',
                 color=colors[i], va='center', ha='left', fontweight='bold')
-    
+
     ax.set_xlabel('Model Complexity', fontsize=12, labelpad=10)
-    ax.set_ylabel('Normalized Metric Value\n(Higher is Better)', fontsize=12, labelpad=10)
+    ax.set_ylabel('Normalized Metric Value\n(Higher is Better)',
+                  fontsize=12, labelpad=10)
     ax.set_xticks(range(len(techniques)))
     ax.set_xticklabels(techniques, rotation=45, ha='right', fontsize=10)
     ax.set_ylim(0, 1)
-    ax.set_xlim(-0.1, len(techniques) - 0.5)  # Adjust x-axis to make room for labels
-    
+    # Adjust x-axis to make room for labels
+    ax.set_xlim(-0.1, len(techniques) - 0.5)
+
     # Remove all spines
     for spine in ax.spines.values():
         spine.set_visible(False)
-    
+
     ax.yaxis.grid(True, linestyle='--', alpha=0.7)
     ax.xaxis.grid(False)
-    
+
     # Remove y-axis ticks
     ax.yaxis.set_ticks([])
-    
+
     plt.tight_layout()
     plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.close()
 
+
 # Create smooth overlay plot
-create_smooth_overlay_plot(rmse_norm, mae_norm, ssim_norm, 'exeter_integrated_metric_overlay.png')
+create_smooth_overlay_plot(
+    rmse_norm, mae_norm, ssim_norm, 'exeter_integrated_metric_overlay.png')
 
 print("Integrated smooth overlay plot with Exeter colors saved as exeter_integrated_metric_overlay.png")
