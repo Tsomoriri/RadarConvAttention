@@ -62,9 +62,9 @@ plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
 
 # Data
 techniques = ['ConvLSTM', '+ Physics', '+ Attention', '+ Att.\n+ Phys.', '+ Att.\n+ Phys.\n+ DG']
-rmse = [947.81, 940.92, 802.32, 819.34, 827.05]
-mae = [12993.75, 12957.13, 12294.87, 13883.73, 12896.12]
-ssim = [0.6190, 0.6219, 0.6218, 0.5810, 0.5914]
+rmse = [947.81, 940.92, 819.34, 802.32, 827.05]
+mae = [12993.75, 12957.13, 1383.73, 12294.87, 12896.12]
+ssim = [0.6190, 0.6219, 0.5810, 0.6218, 0.5914]
 
 # Normalize the data to 0.1-0.8 range
 def normalize(data):
